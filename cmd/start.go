@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-var serverCmd = &cobra.Command{
+var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start the Profound Crow server",
 	Long:  `Start the Profound Crow server. This will run the API server, set up the Asynq worker, and get everything ready to accept requests.`,
@@ -23,6 +23,6 @@ var serverCmd = &cobra.Command{
 	},
 }
 
-func GetServerCmd() *cobra.Command {
-	return serverCmd
+func GetStartCmd() *cobra.Command {
+	return startCmd
 }
