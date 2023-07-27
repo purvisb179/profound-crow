@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/hibiken/asynq"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"log"
@@ -14,11 +15,27 @@ var startCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		redisAddr := viper.GetString("redisAddr")
 		if redisAddr == "" {
-			return fmt.Errorf("redis address not specified in configuration file")
+			return fmt.Errorf("redis address not specified in configuration")
 		}
 
-		// Remaining server startup code here
-		log.Printf("hello world!")
+		srv := asynq.NewServer(
+			asynq.RedisClientOpt{Addr: redisAddr},
+			asynq.Config{
+				Concurrency: 10,
+				Queues: map[string]int{
+					"critical": 6,
+					"default":  3,
+					"low":      1,
+				},
+			},
+		)
+
+		mux := asynq.NewServeMux()
+
+		if err := srv.Run(mux); err != nil {
+			log.Fatalf("could not run server: %v", err)
+		}
+
 		return nil
 	},
 }
