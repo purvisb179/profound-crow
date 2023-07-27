@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/hibiken/asynq"
 	"github.com/purvisb179/profound-crow/internal/api"
+	"github.com/purvisb179/profound-crow/internal/tasks"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"log"
@@ -39,6 +40,7 @@ var startCmd = &cobra.Command{
 		)
 
 		mux := asynq.NewServeMux()
+		mux.HandleFunc("calendar_event", tasks.HandleCalendarEvent)
 
 		go func() {
 			router := chi.NewRouter()

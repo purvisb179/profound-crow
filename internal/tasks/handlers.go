@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/hibiken/asynq"
@@ -9,7 +10,7 @@ import (
 	"time"
 )
 
-func HandleCalendarEvent(t *asynq.Task) error {
+func HandleCalendarEvent(ctx context.Context, t *asynq.Task) error {
 	var p pkg.CalendarEventPayload
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
