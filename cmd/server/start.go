@@ -43,8 +43,10 @@ var startCmd = &cobra.Command{
 		mux.HandleFunc("calendar_event", tasks.HandleCalendarEvent)
 
 		go func() {
+			client := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
+			apiHandler := api.NewHandler(client)
 			router := chi.NewRouter()
-			api.BindRoutes(router)
+			api.BindRoutes(router, apiHandler)
 			if err := http.ListenAndServe(":"+serverPort, router); err != nil {
 				log.Fatalf("Failed to start API server: %v", err)
 			}

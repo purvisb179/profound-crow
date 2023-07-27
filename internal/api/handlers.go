@@ -8,9 +8,15 @@ import (
 	"time"
 )
 
-var client = asynq.NewClient(asynq.RedisClientOpt{Addr: "localhost:6379"}) //TODO dont make new client on every request
+type Handler struct {
+	Client *asynq.Client
+}
 
-func CreateCalendarHandler(w http.ResponseWriter, r *http.Request) {
+func NewHandler(client *asynq.Client) *Handler {
+	return &Handler{Client: client}
+}
+
+func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
@@ -23,7 +29,7 @@ func CreateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := client.Enqueue(task); err != nil {
+	if _, err := h.Client.Enqueue(task); err != nil {
 		http.Error(w, "Error enqueuing task", http.StatusInternalServerError)
 		log.Printf("Error enqueuing task: %v", err)
 		return
