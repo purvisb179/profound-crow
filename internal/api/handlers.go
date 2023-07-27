@@ -1,10 +1,12 @@
 package api
 
 import (
+	ics "github.com/arran4/golang-ical"
 	"github.com/hibiken/asynq"
 	"github.com/purvisb179/profound-crow/internal/tasks"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -22,20 +24,46 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	task, err := tasks.CreateCalendarEvent("dummy/path", "dummy event", time.Now())
+	filePath := r.URL.Query().Get("filepath")
+	file, err := os.Open(filePath)
 	if err != nil {
-		http.Error(w, "Error creating task", http.StatusInternalServerError)
-		log.Printf("Error creating task: %v", err)
+		http.Error(w, "Could not open file", http.StatusInternalServerError)
+		log.Printf("could not open file: %v", err)
+		return
+	}
+	defer file.Close()
+
+	cal, err := ics.ParseCalendar(file)
+	if err != nil {
+		http.Error(w, "Could not parse calendar", http.StatusInternalServerError)
+		log.Printf("could not parse calendar: %v", err)
 		return
 	}
 
-	if _, err := h.Client.Enqueue(task); err != nil {
-		http.Error(w, "Error enqueuing task", http.StatusInternalServerError)
-		log.Printf("Error enqueuing task: %v", err)
-		return
+	for _, event := range cal.Events() {
+		processTime, _ := event.GetStartAt()
+		summary := event.GetProperty(ics.ComponentPropertyDescription).Value
+
+		task, err := tasks.CreateCalendarEvent(filePath, summary, processTime)
+		if err != nil {
+			http.Error(w, "Could not create task", http.StatusInternalServerError)
+			log.Printf("could not create task: %v", err)
+			return
+		}
+
+		durationUntilProcessing := processTime.Sub(time.Now())
+		if durationUntilProcessing < 0 {
+			log.Printf("event in the past, skipping: %v", err)
+			continue
+		}
+
+		if _, err := h.Client.Enqueue(task, asynq.ProcessIn(durationUntilProcessing)); err != nil {
+			http.Error(w, "Could not enqueue task", http.StatusInternalServerError)
+			log.Printf("could not enqueue task: %v", err)
+			return
+		}
 	}
 
-	log.Printf("Enqueued task: %v", task)
-	w.Write([]byte("Task created successfully"))
+	w.Write([]byte("Tasks created successfully"))
 	return
 }

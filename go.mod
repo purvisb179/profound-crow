@@ -3,6 +3,7 @@ module github.com/purvisb179/profound-crow
 go 1.20
 
 require (
+	github.com/arran4/golang-ical v0.1.0
 	github.com/go-chi/chi v1.5.4
 	github.com/hibiken/asynq v0.24.1
 	github.com/spf13/cobra v1.7.0
