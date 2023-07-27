@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  redis:
+    image: bitnami/redis
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6379:6379"
+#  asynqmon:
+#    image: hibiken/asynqmon
+#    command: --redis-addr=redis:6379
+#    ports:
+#      - '8080:8080'
+#Removed this because there's no arm version for it
