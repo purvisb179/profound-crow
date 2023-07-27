@@ -20,5 +20,5 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand()
+	rootCmd.AddCommand(GetServerCmd())
 }
