@@ -2,10 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/go-chi/chi"
 	"github.com/hibiken/asynq"
+	"github.com/purvisb179/profound-crow/internal/api"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"log"
+	"net/http"
 )
 
 var startCmd = &cobra.Command{
@@ -31,6 +34,14 @@ var startCmd = &cobra.Command{
 		)
 
 		mux := asynq.NewServeMux()
+
+		go func() {
+			router := chi.NewRouter()
+			api.BindRoutes(router)
+			if err := http.ListenAndServe(":8888", router); err != nil {
+				log.Fatalf("Failed to start API server: %v", err)
+			}
+		}()
 
 		if err := srv.Run(mux); err != nil {
 			log.Fatalf("could not run server: %v", err)
