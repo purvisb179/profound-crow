@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/purvisb179/profound-crow/cmd/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"log"
@@ -34,5 +35,5 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(GetStartCmd())
+	rootCmd.AddCommand(server.GetStartCmd())
 }
