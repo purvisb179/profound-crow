@@ -21,6 +21,11 @@ var startCmd = &cobra.Command{
 			return fmt.Errorf("redis address not specified in configuration")
 		}
 
+		serverPort := viper.GetString("serverPort")
+		if serverPort == "" {
+			return fmt.Errorf("server port not specified in configuration")
+		}
+
 		srv := asynq.NewServer(
 			asynq.RedisClientOpt{Addr: redisAddr},
 			asynq.Config{
@@ -38,7 +43,7 @@ var startCmd = &cobra.Command{
 		go func() {
 			router := chi.NewRouter()
 			api.BindRoutes(router)
-			if err := http.ListenAndServe(":8888", router); err != nil {
+			if err := http.ListenAndServe(":"+serverPort, router); err != nil {
 				log.Fatalf("Failed to start API server: %v", err)
 			}
 		}()
