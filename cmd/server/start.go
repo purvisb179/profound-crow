@@ -44,7 +44,8 @@ var startCmd = &cobra.Command{
 
 		go func() {
 			client := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
-			apiHandler := api.NewHandler(client)
+			inspector := asynq.NewInspector(asynq.RedisClientOpt{Addr: redisAddr})
+			apiHandler := api.NewHandler(client, inspector)
 			router := chi.NewRouter()
 			api.BindRoutes(router, apiHandler)
 			if err := http.ListenAndServe(":"+serverPort, router); err != nil {
