@@ -102,14 +102,24 @@ func (h *Handler) CheckQueueHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tasks, err := h.Inspector.ListActiveTasks("default")
+	tasks, err := h.Inspector.ListScheduledTasks("default", 0, -1)
 	if err != nil {
 		http.Error(w, "Error retrieving tasks", http.StatusInternalServerError)
 		log.Printf("Error retrieving tasks: %v", err)
 		return
 	}
 
-	response, err := json.Marshal(tasks)
+	taskDetails := make([]map[string]interface{}, len(tasks))
+
+	for i, task := range tasks {
+		taskDetails[i] = map[string]interface{}{
+			"ID":      task.ID,
+			"Type":    task.Type,
+			"Payload": task.Payload,
+		}
+	}
+
+	response, err := json.Marshal(taskDetails)
 	if err != nil {
 		http.Error(w, "Error marshalling response", http.StatusInternalServerError)
 		log.Printf("Error marshalling response: %v", err)
