@@ -6,7 +6,6 @@ import (
 	"github.com/purvisb179/profound-crow/internal/tasks"
 	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -24,14 +23,20 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	filePath := r.URL.Query().Get("filepath")
-	file, err := os.Open(filePath)
+	// max 10 MB file
+	r.ParseMultipartForm(10 << 20)
+
+	file, handler, err := r.FormFile("myFile")
 	if err != nil {
-		http.Error(w, "Could not open file", http.StatusInternalServerError)
-		log.Printf("could not open file: %v", err)
+		http.Error(w, "Error retrieving the file", http.StatusInternalServerError)
+		log.Printf("Error retrieving the file: %v", err)
 		return
 	}
 	defer file.Close()
+
+	log.Printf("Uploaded File: %+v", handler.Filename)
+	log.Printf("File Size: %+v", handler.Size)
+	log.Printf("MIME Header: %+v", handler.Header)
 
 	cal, err := ics.ParseCalendar(file)
 	if err != nil {
@@ -44,7 +49,7 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 		processTime, _ := event.GetStartAt()
 		summary := event.GetProperty(ics.ComponentPropertyDescription).Value
 
-		task, err := tasks.CreateCalendarEvent(filePath, summary, processTime)
+		task, err := tasks.CreateCalendarEvent(handler.Filename, summary, processTime)
 		if err != nil {
 			http.Error(w, "Could not create task", http.StatusInternalServerError)
 			log.Printf("could not create task: %v", err)
