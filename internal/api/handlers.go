@@ -5,6 +5,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/purvisb179/profound-crow/internal/tasks"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"time"
 )
@@ -24,7 +25,12 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// max 10 MB file
-	r.ParseMultipartForm(10 << 20)
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		http.Error(w, "Error parsing the file", http.StatusInternalServerError)
+		log.Printf("Error parsing the file: %v", err)
+		return
+	}
 
 	file, handler, err := r.FormFile("myFile")
 	if err != nil {
@@ -32,7 +38,12 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 		log.Printf("Error retrieving the file: %v", err)
 		return
 	}
-	defer file.Close()
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+			log.Printf("Error closing the file: %v", err)
+		}
+	}(file)
 
 	log.Printf("Uploaded File: %+v", handler.Filename)
 	log.Printf("File Size: %+v", handler.Size)
@@ -69,6 +80,10 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	w.Write([]byte("Tasks created successfully"))
+	_, err = w.Write([]byte("Tasks created successfully"))
+	if err != nil {
+		log.Printf("Error writing to buffer: %v", err)
+	}
 	return
+
 }
