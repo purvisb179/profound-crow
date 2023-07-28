@@ -1,10 +1,12 @@
 package api
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	ics "github.com/arran4/golang-ical"
 	"github.com/hibiken/asynq"
 	"github.com/purvisb179/profound-crow/internal/tasks"
+	"github.com/purvisb179/profound-crow/pkg"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -109,13 +111,30 @@ func (h *Handler) CheckQueueHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taskDetails := make([]map[string]interface{}, len(tasks))
+	taskDetails := make([]pkg.Event, len(tasks))
 
 	for i, task := range tasks {
-		taskDetails[i] = map[string]interface{}{
-			"ID":      task.ID,
-			"Type":    task.Type,
-			"Payload": task.Payload,
+		var payload pkg.CalendarEventPayload
+		err := json.Unmarshal(task.Payload, &payload)
+		if err != nil {
+			http.Error(w, "Error unmarshalling payload", http.StatusInternalServerError)
+			log.Printf("Error unmarshalling payload: %v", err)
+			return
+		}
+
+		payloadStr, err := json.Marshal(payload)
+		if err != nil {
+			http.Error(w, "Error marshalling payload", http.StatusInternalServerError)
+			log.Printf("Error marshalling payload: %v", err)
+			return
+		}
+
+		base64Payload := base64.StdEncoding.EncodeToString(payloadStr)
+
+		taskDetails[i] = pkg.Event{
+			ID:      task.ID,
+			Type:    task.Type,
+			Payload: base64Payload,
 		}
 	}
 

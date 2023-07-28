@@ -7,3 +7,9 @@ type CalendarEventPayload struct {
 	EventSummary string
 	EventStart   time.Time
 }
+
+type Event struct {
+	ID      string
+	Payload string
+	Type    string
+}
