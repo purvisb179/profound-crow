@@ -39,5 +39,6 @@ func init() {
 	rootCmd.AddCommand(
 		server.GetStartCmd(),
 		cli.GetCheckCmd(),
+		cli.GetUploadCmd(),
 	)
 }

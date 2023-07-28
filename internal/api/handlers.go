@@ -129,7 +129,7 @@ func (h *Handler) CheckQueueHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		base64Payload := base64.StdEncoding.EncodeToString(payloadStr)
+		base64Payload := base64.StdEncoding.EncodeToString(payloadStr) //encoding this because its coming to us as binary.
 
 		taskDetails[i] = pkg.Event{
 			ID:      task.ID,
