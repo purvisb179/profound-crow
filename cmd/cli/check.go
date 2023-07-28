@@ -17,7 +17,7 @@ var (
 	checkCmd = &cobra.Command{
 		Use:   "check",
 		Short: "Send a GET request and print the decoded base64 response",
-		Long:  `Send a GET request to the specified URL, decode the base64 response and pretty print it.`,
+		Long:  "Send a GET request to the specified URL, decode the base64 response and pretty print it.",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			url, _ = cmd.Flags().GetString("url")
 		},
@@ -32,6 +32,10 @@ var (
 					log.Printf("failed to close reader")
 				}
 			}(response.Body)
+
+			if response.StatusCode != http.StatusOK {
+				return fmt.Errorf("received non-200 response code: %d", response.StatusCode)
+			}
 
 			body, readErr := ioutil.ReadAll(response.Body)
 			if readErr != nil {
@@ -64,7 +68,6 @@ var (
 				fmt.Println(string(prettyJSON))
 			}
 			return nil
-
 		},
 	}
 )
