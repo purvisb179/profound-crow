@@ -9,6 +9,7 @@ import (
 	"github.com/zalando/go-keyring"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 var (
@@ -84,7 +85,7 @@ func authenticate() error {
 		return err
 	}
 
-	fmt.Printf("Expires in: %s\n")
+	fmt.Printf("Expires in: %s\n", time.Duration(tokenResponse.ExpiresIn)*time.Second)
 
 	user := "user"
 	err = keyring.Set(service, user, tokenResponse.AccessToken)

