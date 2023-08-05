@@ -4,19 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/purvisb179/profound-crow/pkg"
 	"github.com/spf13/cobra"
 	"github.com/zalando/go-keyring"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
-
-type TokenResponse struct {
-	AccessToken string `json:"access_token"`
-	ExpiresIn   int    `json:"expires_in"`
-	Scope       string `json:"scope"`
-	TokenType   string `json:"token_type"`
-}
 
 var (
 	authCmd = &cobra.Command{
@@ -84,14 +77,14 @@ func authenticate() error {
 		return fmt.Errorf("error: %v", string(body))
 	}
 
-	var tokenResponse TokenResponse
+	var tokenResponse pkg.TokenResponse
 
 	err = json.Unmarshal(body, &tokenResponse)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Expires in: %s\n", time.Duration(tokenResponse.ExpiresIn)*time.Second)
+	fmt.Printf("Expires in: %s\n")
 
 	user := "user"
 	err = keyring.Set(service, user, tokenResponse.AccessToken)
