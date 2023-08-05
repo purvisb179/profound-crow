@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/spf13/cobra"
+	"github.com/zalando/go-keyring"
 	"io/ioutil"
 	"net/http"
 	"time"
-
-	"github.com/spf13/cobra"
 )
 
 type TokenResponse struct {
@@ -83,8 +83,15 @@ func authenticate(clientID string, clientSecret string, refreshToken string) err
 		return err
 	}
 
-	fmt.Printf("Access token: %s\n", tokenResponse.AccessToken)
 	fmt.Printf("Expires in: %s\n", time.Duration(tokenResponse.ExpiresIn)*time.Second)
 
+	service := "my_cli_app"
+	user := "user"
+	err = keyring.Set(service, user, tokenResponse.AccessToken)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Access token saved to keyring.")
 	return nil
 }
