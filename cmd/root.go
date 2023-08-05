@@ -41,5 +41,6 @@ func init() {
 		cli.GetCheckCmd(),
 		cli.GetUploadCmd(),
 		cli.GetAuthCmd(),
+		cli.GetInitCmd(),
 	)
 }

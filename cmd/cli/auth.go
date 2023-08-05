@@ -3,7 +3,6 @@ package cli
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/zalando/go-keyring"
@@ -20,32 +19,41 @@ type TokenResponse struct {
 }
 
 var (
-	clientID     string
-	clientSecret string
-	refreshToken string
-	authCmd      = &cobra.Command{
+	authCmd = &cobra.Command{
 		Use:   "auth",
 		Short: "Authenticate with Google OAuth",
 		Long:  "Use a refresh token to get a new access token",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return authenticate(clientID, clientSecret, refreshToken)
+			return authenticate()
 		},
 	}
 )
-
-func init() {
-	authCmd.Flags().StringVar(&clientID, "client-id", "", "OAuth2 Client ID")
-	authCmd.Flags().StringVar(&clientSecret, "client-secret", "", "OAuth2 Client Secret")
-	authCmd.Flags().StringVar(&refreshToken, "refresh-token", "", "OAuth2 Refresh Token")
-}
 
 func GetAuthCmd() *cobra.Command {
 	return authCmd
 }
 
-func authenticate(clientID string, clientSecret string, refreshToken string) error {
-	if clientID == "" || clientSecret == "" || refreshToken == "" {
-		return errors.New("client-id, client-secret and refresh-token are required")
+func authenticate() error {
+	service := "my_cli_app"
+
+	clientID, err := keyring.Get(service, "clientID")
+	if err != nil {
+		return err
+	}
+
+	clientSecret, err := keyring.Get(service, "clientSecret")
+	if err != nil {
+		return err
+	}
+
+	refreshToken, err := keyring.Get(service, "refreshToken")
+	if err != nil {
+		return err
+	}
+
+	endpoint, err := keyring.Get(service, "endpoint")
+	if err != nil {
+		return err
 	}
 
 	data := map[string]string{
@@ -60,7 +68,7 @@ func authenticate(clientID string, clientSecret string, refreshToken string) err
 		return err
 	}
 
-	resp, err := http.Post("https://www.googleapis.com/oauth2/v4/token", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
@@ -85,7 +93,6 @@ func authenticate(clientID string, clientSecret string, refreshToken string) err
 
 	fmt.Printf("Expires in: %s\n", time.Duration(tokenResponse.ExpiresIn)*time.Second)
 
-	service := "my_cli_app"
 	user := "user"
 	err = keyring.Set(service, user, tokenResponse.AccessToken)
 	if err != nil {
