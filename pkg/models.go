@@ -20,3 +20,14 @@ type TokenResponse struct {
 	Scope       string `json:"scope"`
 	TokenType   string `json:"token_type"`
 }
+
+type Device struct {
+	Name            string
+	Type            string
+	Traits          map[string]interface{}
+	ParentRelations []map[string]string
+}
+
+type DeviceResponse struct {
+	Devices []Device
+}
