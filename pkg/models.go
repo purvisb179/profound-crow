@@ -31,3 +31,8 @@ type Device struct {
 type DeviceResponse struct {
 	Devices []Device
 }
+
+type SetTemperatureCommand struct {
+	Command string                 `json:"command"`
+	Params  map[string]interface{} `json:"params"`
+}

@@ -87,8 +87,8 @@ func authenticate() error {
 
 	fmt.Printf("Expires in: %s\n", time.Duration(tokenResponse.ExpiresIn)*time.Second)
 
-	user := "user"
-	err = keyring.Set(service, user, tokenResponse.AccessToken)
+	accessTokenKey := "accessToken"
+	err = keyring.Set(service, accessTokenKey, tokenResponse.AccessToken)
 	if err != nil {
 		return err
 	}

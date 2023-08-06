@@ -43,5 +43,6 @@ func init() {
 		cli.GetAuthCmd(),
 		cli.GetInitCmd(),
 		cli.GetDevicesCmd,
+		cli.SetTempCmd,
 	)
 }
