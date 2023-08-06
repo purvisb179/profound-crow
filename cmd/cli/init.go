@@ -12,12 +12,13 @@ var (
 	refreshToken string
 	oauthURL     string
 	endpoint     string
+	projectID    string
 	initCmd      = &cobra.Command{
 		Use:   "init",
 		Short: "Initialize the CLI with your OAuth credentials and endpoint URL",
 		Long:  "Securely store your OAuth client ID, client secret, refresh token, and the endpoint URL",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return initialize(clientID, clientSecret, refreshToken, oauthURL, endpoint)
+			return initialize(clientID, clientSecret, refreshToken, oauthURL, endpoint, projectID)
 		},
 	}
 )
@@ -28,6 +29,7 @@ func init() {
 	initCmd.Flags().StringVar(&refreshToken, "refresh-token", "", "OAuth2 Refresh Token (required)")
 	initCmd.Flags().StringVar(&oauthURL, "oauth-url", "https://www.googleapis.com/oauth2/v4/token", "Google OAuth Endpoint URL")
 	initCmd.Flags().StringVar(&endpoint, "endpoint", "3.14.100.15", "Endpoint URL")
+	initCmd.Flags().StringVar(&projectID, "project-id", "5fdd9b9e-c155-4c40-953b-69b576286a62", "Google Cloud Project ID")
 	initCmd.MarkFlagRequired("client-id")
 	initCmd.MarkFlagRequired("client-secret")
 	initCmd.MarkFlagRequired("refresh-token")
@@ -37,7 +39,7 @@ func GetInitCmd() *cobra.Command {
 	return initCmd
 }
 
-func initialize(clientID string, clientSecret string, refreshToken string, oauthURL string, endpoint string) error {
+func initialize(clientID string, clientSecret string, refreshToken string, oauthURL string, endpoint string, projectID string) error {
 	service := "my_cli_app"
 
 	err := keyring.Set(service, "clientID", clientID)
@@ -61,6 +63,11 @@ func initialize(clientID string, clientSecret string, refreshToken string, oauth
 	}
 
 	err = keyring.Set(service, "endpoint", endpoint)
+	if err != nil {
+		return err
+	}
+
+	err = keyring.Set(service, "projectID", projectID)
 	if err != nil {
 		return err
 	}
