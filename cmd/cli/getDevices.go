@@ -10,15 +10,22 @@ import (
 	"net/http"
 )
 
-var GetDevicesCmd = &cobra.Command{
-	Use:   "get-devices",
-	Short: "Fetches a list of devices linked to your Device Access project",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return getDevices()
-	},
+var (
+	verbose       bool
+	GetDevicesCmd = &cobra.Command{
+		Use:   "get-devices",
+		Short: "Fetches a list of devices linked to your Device Access project",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getDevices(verbose)
+		},
+	}
+)
+
+func init() {
+	GetDevicesCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 }
 
-func getDevices() error {
+func getDevices(verbose bool) error {
 	service := "my_cli_app"
 
 	accessToken, err := keyring.Get(service, "accessToken")
@@ -61,12 +68,14 @@ func getDevices() error {
 	for _, device := range devices.Devices {
 		fmt.Println("Device Name:", device.Name)
 		fmt.Println("Type:", device.Type)
-		fmt.Println("Traits:")
-		for traitName, traitValue := range device.Traits {
-			traitValueBytes, _ := json.MarshalIndent(traitValue, "", "\t")
-			fmt.Printf("%s:\n%s\n", traitName, string(traitValueBytes))
+		if verbose {
+			fmt.Println("Traits:")
+			for traitName, traitValue := range device.Traits {
+				traitValueBytes, _ := json.MarshalIndent(traitValue, "", "\t")
+				fmt.Printf("%s:\n%s\n", traitName, string(traitValueBytes))
+			}
+			fmt.Println()
 		}
-		fmt.Println()
 	}
 
 	return nil
