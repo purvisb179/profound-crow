@@ -45,7 +45,7 @@ func authenticate() error {
 		return err
 	}
 
-	endpoint, err := keyring.Get(service, "endpoint")
+	endpoint, err := keyring.Get(service, "oauthURL")
 	if err != nil {
 		return err
 	}

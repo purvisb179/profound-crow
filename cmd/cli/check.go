@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/purvisb179/profound-crow/pkg"
 	"github.com/spf13/cobra"
+	"github.com/zalando/go-keyring"
 	"io"
 	"io/ioutil"
 	"log"
@@ -13,15 +14,19 @@ import (
 )
 
 var (
-	url      string
 	checkCmd = &cobra.Command{
 		Use:   "check",
 		Short: "Send a GET request and print the decoded base64 response",
-		Long:  "Send a GET request to the specified URL, decode the base64 response and pretty print it.",
-		PreRun: func(cmd *cobra.Command, args []string) {
-			url, _ = cmd.Flags().GetString("url")
-		},
+		Long:  "Send a GET request to the endpoint, decode the base64 response and pretty print it.",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			service := "my_cli_app"
+			endpoint, err := keyring.Get(service, "endpoint")
+			if err != nil {
+				return err
+			}
+
+			url := fmt.Sprintf("http://%s/check-queue", endpoint)
+
 			response, err := http.Get(url)
 			if err != nil {
 				return err
@@ -71,11 +76,6 @@ var (
 		},
 	}
 )
-
-func init() {
-	checkCmd.PersistentFlags().StringVarP(&url, "url", "u", "", "URL to send the GET request to (required)")
-	checkCmd.MarkPersistentFlagRequired("url")
-}
 
 func GetCheckCmd() *cobra.Command {
 	return checkCmd

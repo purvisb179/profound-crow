@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/zalando/go-keyring"
 	"io"
 	"io/ioutil"
 	"log"
@@ -23,6 +24,14 @@ var (
 			filePath, _ = cmd.Flags().GetString("file")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			service := "my_cli_app"
+			endpoint, err := keyring.Get(service, "endpoint")
+			if err != nil {
+				return err
+			}
+
+			url := fmt.Sprintf("http://%s/new-calendar", endpoint)
+
 			file, err := os.Open(filePath)
 			if err != nil {
 				return err
@@ -81,9 +90,7 @@ var (
 )
 
 func init() {
-	uploadCmd.PersistentFlags().StringVarP(&url, "url", "u", "", "URL to send the POST request to (required)")
 	uploadCmd.PersistentFlags().StringVarP(&filePath, "file", "f", "", "Path of the file to upload (required)")
-	uploadCmd.MarkPersistentFlagRequired("url")
 	uploadCmd.MarkPersistentFlagRequired("file")
 }
 
