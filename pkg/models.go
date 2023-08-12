@@ -3,9 +3,10 @@ package pkg
 import "time"
 
 type CalendarEventPayload struct {
-	FilePath     string
-	EventSummary string
-	EventStart   time.Time
+	FilePath      string
+	EventSummary  string
+	EventStart    time.Time
+	Configuration map[string]interface{} `json:"configuration"`
 }
 
 type Event struct {

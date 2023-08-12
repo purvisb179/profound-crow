@@ -51,6 +51,16 @@ var (
 			}
 			_, err = io.Copy(part, file)
 
+			configField, err := writer.CreateFormField("configuration")
+			if err != nil {
+				return err
+			}
+			dummyConfig := `{"category":"meeting","priority":"high"}` // Hardcoded JSON data
+			_, err = configField.Write([]byte(dummyConfig))
+			if err != nil {
+				return err
+			}
+
 			err = writer.Close()
 			if err != nil {
 				return err

@@ -47,6 +47,11 @@ var (
 				return readErr
 			}
 
+			// Print the raw response if verbose flag is set
+			if verbose {
+				fmt.Println("Raw Response:", string(body))
+			}
+
 			var events []pkg.Event
 			unmarshalErr := json.Unmarshal(body, &events)
 			if unmarshalErr != nil {
@@ -76,6 +81,11 @@ var (
 		},
 	}
 )
+
+func init() {
+	// Add the verbose flag to the checkCmd
+	checkCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Print raw server response")
+}
 
 func GetCheckCmd() *cobra.Command {
 	return checkCmd

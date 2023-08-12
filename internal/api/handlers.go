@@ -35,6 +35,17 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Parse configuration JSON from the request
+	configJSON := r.FormValue("configuration")
+	var config map[string]interface{}
+	if configJSON != "" {
+		if err := json.Unmarshal([]byte(configJSON), &config); err != nil {
+			http.Error(w, "Invalid configuration JSON", http.StatusBadRequest)
+			log.Printf("Error parsing configuration JSON: %v", err)
+			return
+		}
+	}
+
 	file, handler, err := r.FormFile("myFile")
 	if err != nil {
 		http.Error(w, "Error retrieving the file", http.StatusInternalServerError)
@@ -67,7 +78,7 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 
 		summary := event.GetProperty(ics.ComponentPropertyDescription).Value
 
-		task, err := tasks.CreateCalendarEvent(handler.Filename, summary, processTime)
+		task, err := tasks.CreateCalendarEvent(handler.Filename, summary, processTime, config)
 		if err != nil {
 			http.Error(w, "Could not create task", http.StatusInternalServerError)
 			log.Printf("could not create task: %v", err)
