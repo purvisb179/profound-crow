@@ -37,3 +37,11 @@ type SetTemperatureCommand struct {
 	Command string                 `json:"command"`
 	Params  map[string]interface{} `json:"params"`
 }
+
+type UploadInput struct {
+	DeviceID          string `json:"device_id"`
+	Name              string `json:"name"`
+	VacantTemp        int    `json:"vacant_temp"`
+	OccupiedTemp      int    `json:"occupied_temp"`
+	RampUpTimeSeconds int    `json:"ramp_up_time_seconds"`
+}

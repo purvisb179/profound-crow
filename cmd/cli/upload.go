@@ -2,7 +2,9 @@ package cli
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/purvisb179/profound-crow/pkg"
 	"github.com/spf13/cobra"
 	"github.com/zalando/go-keyring"
 	"io"
@@ -15,7 +17,13 @@ import (
 )
 
 var (
-	filePath  string
+	filePath          string
+	deviceID          string
+	name              string
+	vacantTemp        int
+	occupiedTemp      int
+	rampUpTimeSeconds int
+
 	uploadCmd = &cobra.Command{
 		Use:   "upload",
 		Short: "Upload a file to the server",
@@ -51,12 +59,27 @@ var (
 			}
 			_, err = io.Copy(part, file)
 
+			// Create the UploadInput struct from the flags
+			uploadInput := pkg.UploadInput{
+				DeviceID:          deviceID,
+				Name:              name,
+				VacantTemp:        vacantTemp,
+				OccupiedTemp:      occupiedTemp,
+				RampUpTimeSeconds: rampUpTimeSeconds,
+			}
+
+			// Marshal the struct to JSON
+			configJSON, err := json.Marshal(uploadInput)
+			if err != nil {
+				return err
+			}
+
+			// Attach the JSON data to the request
 			configField, err := writer.CreateFormField("configuration")
 			if err != nil {
 				return err
 			}
-			dummyConfig := `{"category":"meeting","priority":"high"}` // Hardcoded JSON data
-			_, err = configField.Write([]byte(dummyConfig))
+			_, err = configField.Write(configJSON)
 			if err != nil {
 				return err
 			}
@@ -101,7 +124,18 @@ var (
 
 func init() {
 	uploadCmd.PersistentFlags().StringVarP(&filePath, "file", "f", "", "Path of the file to upload (required)")
+	uploadCmd.PersistentFlags().StringVarP(&deviceID, "deviceID", "d", "", "Device ID (required)")
+	uploadCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "Name (required)")
+	uploadCmd.PersistentFlags().IntVarP(&vacantTemp, "vacantTemp", "v", 0, "Vacant Temperature (required)")
+	uploadCmd.PersistentFlags().IntVarP(&occupiedTemp, "occupiedTemp", "o", 0, "Occupied Temperature (required)")
+	uploadCmd.PersistentFlags().IntVarP(&rampUpTimeSeconds, "rampUpTime", "r", 0, "Ramp Up Time in Seconds (required)")
+
 	uploadCmd.MarkPersistentFlagRequired("file")
+	uploadCmd.MarkPersistentFlagRequired("deviceID")
+	uploadCmd.MarkPersistentFlagRequired("name")
+	uploadCmd.MarkPersistentFlagRequired("vacantTemp")
+	uploadCmd.MarkPersistentFlagRequired("occupiedTemp")
+	uploadCmd.MarkPersistentFlagRequired("rampUpTime")
 }
 
 func GetUploadCmd() *cobra.Command {
