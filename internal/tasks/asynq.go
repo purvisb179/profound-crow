@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/hibiken/asynq"
 	"github.com/purvisb179/profound-crow/pkg"
@@ -30,7 +31,14 @@ func (s *AsynqService) ListScheduledTasks() ([]*asynq.TaskInfo, error) {
 }
 
 func (s *AsynqService) ProcessAndEnqueueCalendarEvent(payload pkg.CalendarEventPayload) error {
-	task, err := CreateCalendarEvent(payload.FilePath, payload.EventSummary, payload.EventStart, payload.Configuration)
+	// Convert payload into JSON
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("could not marshal payload: %v", err)
+	}
+
+	// Create the task
+	task := asynq.NewTask("CalendarEventPayload", payloadBytes)
 	if err != nil {
 		return fmt.Errorf("could not create task: %v", err)
 	}

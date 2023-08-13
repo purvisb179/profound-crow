@@ -19,8 +19,6 @@ func NewHandler(asynqService *tasks.AsynqService) *Handler {
 	return &Handler{AsynqService: asynqService}
 }
 
-//todo figure out what parts of the asynq stuff need to be in here. I feel like this file is got too broad of scope in regards to the stuff it does.
-
 func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)

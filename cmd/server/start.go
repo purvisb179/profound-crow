@@ -53,7 +53,8 @@ var (
 			)
 
 			mux := asynq.NewServeMux()
-			mux.HandleFunc("calendar_event", tasks.HandleCalendarEvent)
+			handlerInstance := &tasks.TaskHandler{NestService: nestService}
+			mux.HandleFunc("calendar_event", handlerInstance.HandleCalendarEvent)
 
 			go func() {
 				client := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
