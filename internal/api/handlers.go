@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	ics "github.com/arran4/golang-ical"
 	"github.com/purvisb179/profound-crow/internal/tasks"
@@ -111,10 +110,10 @@ func (h *Handler) CheckQueueHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taskDetails := make([]pkg.Event, len(tasks))
+	taskDetails := make([]pkg.CalendarTaskCheckResponse, len(tasks))
 
 	for i, task := range tasks {
-		var payload pkg.CalendarEventPayload
+		var payload pkg.CalendarTaskPayload
 		err := json.Unmarshal(task.Payload, &payload)
 		if err != nil {
 			http.Error(w, "Error unmarshalling payload", http.StatusInternalServerError)
@@ -122,19 +121,9 @@ func (h *Handler) CheckQueueHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		payloadStr, err := json.Marshal(payload)
-		if err != nil {
-			http.Error(w, "Error marshalling payload", http.StatusInternalServerError)
-			log.Printf("Error marshalling payload: %v", err)
-			return
-		}
-
-		base64Payload := base64.StdEncoding.EncodeToString(payloadStr) //encoding this because its coming to us as binary.
-
-		taskDetails[i] = pkg.Event{
-			ID:      task.ID,
-			Type:    task.Type,
-			Payload: base64Payload,
+		taskDetails[i] = pkg.CalendarTaskCheckResponse{
+			Payload:   payload,
+			StartTime: task.NextProcessAt,
 		}
 	}
 
@@ -145,6 +134,7 @@ func (h *Handler) CheckQueueHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(response)
 	return
 }

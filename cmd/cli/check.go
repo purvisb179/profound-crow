@@ -1,15 +1,12 @@
 package cli
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/purvisb179/profound-crow/pkg"
 	"github.com/spf13/cobra"
 	"github.com/zalando/go-keyring"
-	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -31,12 +28,7 @@ var (
 			if err != nil {
 				return err
 			}
-			defer func(Body io.ReadCloser) {
-				err := Body.Close()
-				if err != nil {
-					log.Printf("failed to close reader")
-				}
-			}(response.Body)
+			defer response.Body.Close()
 
 			if response.StatusCode != http.StatusOK {
 				return fmt.Errorf("received non-200 response code: %d", response.StatusCode)
@@ -52,25 +44,14 @@ var (
 				fmt.Println("Raw Response:", string(body))
 			}
 
-			var events []pkg.Event
-			unmarshalErr := json.Unmarshal(body, &events)
+			var taskDetails []pkg.CalendarTaskCheckResponse
+			unmarshalErr := json.Unmarshal(body, &taskDetails)
 			if unmarshalErr != nil {
 				return unmarshalErr
 			}
 
-			for _, event := range events {
-				decodedBytes, decodeErr := base64.StdEncoding.DecodeString(event.Payload)
-				if decodeErr != nil {
-					return decodeErr
-				}
-
-				var payload pkg.CalendarEventPayload
-				unmarshalPayloadErr := json.Unmarshal(decodedBytes, &payload)
-				if unmarshalPayloadErr != nil {
-					return unmarshalPayloadErr
-				}
-
-				prettyJSON, err := json.MarshalIndent(payload, "", "\t")
+			for _, detail := range taskDetails {
+				prettyJSON, err := json.MarshalIndent(detail, "", "\t")
 				if err != nil {
 					return err
 				}

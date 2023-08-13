@@ -48,7 +48,7 @@ func (s *AsynqService) ProcessAndEnqueueCalendarEvent(payload pkg.CalendarEventP
 	}
 
 	// Create and enqueue the starting task
-	startTask := asynq.NewTask("CalendarEventPayload", startPayloadBytes)
+	startTask := asynq.NewTask("calendar_event", startPayloadBytes)
 	if err := s.EnqueueTask(startTask, startDuration); err != nil {
 		return fmt.Errorf("could not enqueue starting task: %v", err)
 	}
@@ -71,7 +71,7 @@ func (s *AsynqService) ProcessAndEnqueueCalendarEvent(payload pkg.CalendarEventP
 	}
 
 	// Create and enqueue the ending task
-	endTask := asynq.NewTask("CalendarEventPayload", endPayloadBytes)
+	endTask := asynq.NewTask("end_calendar_event", endPayloadBytes) // Name change for clarity
 	if err := s.EnqueueTask(endTask, endDuration); err != nil {
 		return fmt.Errorf("could not enqueue ending task: %v", err)
 	}

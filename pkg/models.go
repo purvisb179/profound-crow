@@ -2,7 +2,7 @@ package pkg
 
 import "time"
 
-type CalendarEventPayload struct {
+type CalendarEventPayload struct { //todo also rename this please. this is supposed to be some higher level meta data of items in the calendar
 	FilePath      string
 	EventSummary  string
 	EventStart    time.Time
@@ -13,6 +13,11 @@ type CalendarEventPayload struct {
 type CalendarTaskPayload struct {
 	DeviceID string
 	Temp     int
+}
+
+type CalendarTaskCheckResponse struct {
+	Payload   CalendarTaskPayload `json:"payload"`
+	StartTime time.Time           `json:"startTime"`
 }
 
 type Event struct {
