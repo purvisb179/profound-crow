@@ -10,4 +10,5 @@ func BindRoutes(r *chi.Mux, apiHandler *Handler) {
 		apiHandler.CreateCalendarHandler(w, r)
 	})
 	r.Get("/check-queue", apiHandler.CheckQueueHandler)
+	r.Delete("/clear-queue", apiHandler.ClearQueueHandler)
 }

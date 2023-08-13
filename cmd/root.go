@@ -42,6 +42,7 @@ func init() {
 		cli.GetUploadCmd(),
 		cli.GetAuthCmd(),
 		cli.GetInitCmd(),
+		cli.GetClearQueueCmd(),
 		cli.GetDevicesCmd,
 		cli.SetTempCmd,
 	)

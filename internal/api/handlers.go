@@ -148,3 +148,30 @@ func (h *Handler) CheckQueueHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 	return
 }
+
+func (h *Handler) ClearQueueHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Extract queue name from the request's query parameters.
+	queueName := r.URL.Query().Get("queue")
+	if queueName == "" {
+		http.Error(w, "Queue name is required", http.StatusBadRequest)
+		return
+	}
+
+	err := h.AsynqService.ClearQueue(queueName)
+	if err != nil {
+		http.Error(w, "Error clearing the queue", http.StatusInternalServerError)
+		log.Printf("Error clearing the queue: %v", err)
+		return
+	}
+
+	_, err = w.Write([]byte("Queue cleared successfully"))
+	if err != nil {
+		log.Printf("Error writing to buffer: %v", err)
+	}
+	return
+}

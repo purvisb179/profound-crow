@@ -79,3 +79,13 @@ func (s *AsynqService) ProcessAndEnqueueCalendarEvent(payload pkg.CalendarEventP
 
 	return nil
 }
+
+// ClearQueue deletes all tasks in the specified queue.
+func (s *AsynqService) ClearQueue(queueName string) error {
+	deleted, err := s.Inspector.DeleteAllScheduledTasks(queueName)
+	if err != nil {
+		return fmt.Errorf("could not clear queue %s: %v", queueName, err)
+	}
+	log.Printf("Successfully deleted %d tasks from queue %s", deleted, queueName)
+	return nil
+}
