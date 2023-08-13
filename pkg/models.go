@@ -6,6 +6,7 @@ type CalendarEventPayload struct {
 	FilePath      string
 	EventSummary  string
 	EventStart    time.Time
+	EventEnd      time.Time
 	Configuration UploadInput //todo change this naming cause its confusing
 }
 

@@ -71,6 +71,7 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 
 	for _, event := range cal.Events() {
 		processTime, _ := event.GetStartAt()
+		endTime, _ := event.GetEndAt()
 		processTime = processTime.Local()
 		summary := event.GetProperty(ics.ComponentPropertyDescription).Value
 
@@ -78,6 +79,7 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 			FilePath:      handler.Filename,
 			EventSummary:  summary,
 			EventStart:    processTime,
+			EventEnd:      endTime,
 			Configuration: uploadInput,
 		}
 
