@@ -31,51 +31,51 @@ func (s *AsynqService) ListScheduledTasks() ([]*asynq.TaskInfo, error) {
 }
 
 func (s *AsynqService) ProcessAndEnqueueCalendarEvent(payload pkg.CalendarEventPayload) error {
-	// Convert payload into JSON
-	payloadBytes, err := json.Marshal(payload)
+	// Starting Task payload
+	startPayload := CalendarTaskPayload{
+		DeviceID: payload.Configuration.DeviceID,
+		Temp:     payload.Configuration.OccupiedTemp,
+	}
+	startPayloadBytes, err := json.Marshal(startPayload)
 	if err != nil {
-		return fmt.Errorf("could not marshal payload: %v", err)
+		return fmt.Errorf("could not marshal start payload: %v", err)
 	}
 
-	// Create the start task
-	startTask := asynq.NewTask("CalendarEventPayload", payloadBytes)
+	// Calculate duration until processing for the starting task
+	startDuration := payload.EventStart.Sub(time.Now()) - time.Second*time.Duration(payload.Configuration.RampUpTimeSeconds)
+	if startDuration < 0 {
+		return fmt.Errorf("event in the past or ramp-up time exceeds event start, skipping starting task")
+	}
+
+	// Create and enqueue the starting task
+	startTask := asynq.NewTask("CalendarEventPayload", startPayloadBytes)
+	if err := s.EnqueueTask(startTask, startDuration); err != nil {
+		return fmt.Errorf("could not enqueue starting task: %v", err)
+	}
+	log.Printf("Starting task enqueued successfully. Duration until processing: %v", startDuration)
+
+	// Ending Task payload
+	endPayload := CalendarTaskPayload{
+		DeviceID: payload.Configuration.DeviceID,
+		Temp:     payload.Configuration.VacantTemp,
+	}
+	endPayloadBytes, err := json.Marshal(endPayload)
 	if err != nil {
-		return fmt.Errorf("could not create start task: %v", err)
+		return fmt.Errorf("could not marshal end payload: %v", err)
 	}
 
-	log.Printf("Start task created successfully. Summary: %s, Process Time: %v", payload.EventSummary, payload.EventStart)
-
-	// Compute the time until processing the start task, but subtract the ramp up time
-	durationUntilStart := payload.EventStart.Sub(time.Now()) - time.Second*time.Duration(payload.Configuration.RampUpTimeSeconds)
-	if durationUntilStart < 0 {
-		return fmt.Errorf("event start in the past or ramp-up time exceeds event start, skipping")
+	// Calculate duration until processing for the ending task
+	endDuration := payload.EventEnd.Sub(time.Now())
+	if endDuration < 0 {
+		return fmt.Errorf("event end time is in the past, skipping ending task")
 	}
 
-	if err := s.EnqueueTask(startTask, durationUntilStart); err != nil {
-		return fmt.Errorf("could not enqueue start task: %v", err)
+	// Create and enqueue the ending task
+	endTask := asynq.NewTask("CalendarEventPayload", endPayloadBytes)
+	if err := s.EnqueueTask(endTask, endDuration); err != nil {
+		return fmt.Errorf("could not enqueue ending task: %v", err)
 	}
-
-	log.Printf("Start task enqueued successfully. Duration until processing: %v", durationUntilStart)
-
-	// Create the end task
-	endTask := asynq.NewTask("CalendarEventPayload", payloadBytes)
-	if err != nil {
-		return fmt.Errorf("could not create end task: %v", err)
-	}
-
-	log.Printf("End task created successfully. Summary: %s, Process Time: %v", payload.EventSummary, payload.EventEnd)
-
-	// Compute the time until processing the end task
-	durationUntilEnd := payload.EventEnd.Sub(time.Now())
-	if durationUntilEnd < 0 {
-		return fmt.Errorf("event end in the past, skipping")
-	}
-
-	if err := s.EnqueueTask(endTask, durationUntilEnd); err != nil {
-		return fmt.Errorf("could not enqueue end task: %v", err)
-	}
-
-	log.Printf("End task enqueued successfully. Duration until processing: %v", durationUntilEnd)
+	log.Printf("Ending task enqueued successfully. Duration until processing: %v", endDuration)
 
 	return nil
 }

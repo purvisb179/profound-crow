@@ -10,6 +10,11 @@ type CalendarEventPayload struct {
 	Configuration UploadInput //todo change this naming cause its confusing
 }
 
+type CalendarTaskPayload struct {
+	DeviceID string
+	Temp     int
+}
+
 type Event struct {
 	ID      string
 	Payload string
