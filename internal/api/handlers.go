@@ -9,7 +9,6 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
-	"time"
 )
 
 type Handler struct {
@@ -74,32 +73,22 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 
 	for _, event := range cal.Events() {
 		processTime, _ := event.GetStartAt()
-		processTime = processTime.Local() // convert to local timezone
-
+		processTime = processTime.Local()
 		summary := event.GetProperty(ics.ComponentPropertyDescription).Value
 
-		task, err := tasks.CreateCalendarEvent(handler.Filename, summary, processTime, uploadInput)
+		payload := pkg.CalendarEventPayload{
+			FilePath:      handler.Filename,
+			EventSummary:  summary,
+			EventStart:    processTime,
+			Configuration: uploadInput,
+		}
+
+		err := h.AsynqService.ProcessAndEnqueueCalendarEvent(payload)
 		if err != nil {
-			http.Error(w, "Could not create task", http.StatusInternalServerError)
-			log.Printf("could not create task: %v", err)
+			http.Error(w, "Error processing calendar event", http.StatusInternalServerError)
+			log.Printf("error processing calendar event: %v", err)
 			return
 		}
-
-		log.Printf("Task created successfully. Summary: %s, Process Time: %v", summary, processTime)
-
-		durationUntilProcessing := processTime.Sub(time.Now())
-		if durationUntilProcessing < 0 {
-			log.Printf("event in the past, skipping: %v", err)
-			continue
-		}
-
-		if err := h.AsynqService.EnqueueTask(task, durationUntilProcessing); err != nil {
-			http.Error(w, "Could not enqueue task", http.StatusInternalServerError)
-			log.Printf("could not enqueue task: %v", err)
-			return
-		}
-
-		log.Printf("Task enqueued successfully. Duration until processing: %v", durationUntilProcessing)
 	}
 
 	_, err = w.Write([]byte("Tasks created successfully"))
