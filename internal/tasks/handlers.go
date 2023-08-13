@@ -24,11 +24,20 @@ func (th *TaskHandler) HandleCalendarEvent(ctx context.Context, t *asynq.Task) e
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
 
-	// Use th.NestService with the payload data (p.DeviceID and p.Temp)
-	// For example, if you had a method in NestService to set temperature for a device:
-	// th.NestService.SetTemperature(p.DeviceID, p.Temp)
+	// Determine the mode based on temperature
+	var mode string
+	if p.Temp <= 65 {
+		mode = "COOL"
+	} else {
+		mode = "HEAT"
+	}
 
-	log.Printf("Device ID: %s, Temp: %d\n", p.DeviceID, p.Temp)
+	// Use th.NestService to set temperature for a device
+	if err := th.NestService.SetTemperature(p.DeviceID, mode, fmt.Sprintf("%d", p.Temp)); err != nil {
+		return fmt.Errorf("failed to set temperature: %v: %w", err, asynq.SkipRetry)
+	}
+
+	log.Printf("Device ID: %s, Temp: %d, Mode: %s\n", p.DeviceID, p.Temp, mode)
 
 	return nil
 }
