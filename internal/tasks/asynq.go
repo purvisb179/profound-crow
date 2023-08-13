@@ -45,9 +45,9 @@ func (s *AsynqService) ProcessAndEnqueueCalendarEvent(payload pkg.CalendarEventP
 
 	log.Printf("Task created successfully. Summary: %s, Process Time: %v", payload.EventSummary, payload.EventStart)
 
-	durationUntilProcessing := payload.EventStart.Sub(time.Now())
+	durationUntilProcessing := payload.EventStart.Sub(time.Now()) - time.Second*time.Duration(payload.Configuration.RampUpTimeSeconds)
 	if durationUntilProcessing < 0 {
-		return fmt.Errorf("event in the past, skipping")
+		return fmt.Errorf("event in the past or ramp-up time exceeds event start, skipping")
 	}
 
 	if err := s.EnqueueTask(task, durationUntilProcessing); err != nil {
