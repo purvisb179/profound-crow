@@ -1,12 +1,11 @@
 package server
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/hibiken/asynq"
 	"github.com/purvisb179/profound-crow/internal/api"
+	"github.com/purvisb179/profound-crow/internal/devices"
 	"github.com/purvisb179/profound-crow/internal/tasks"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -26,7 +25,8 @@ var (
 		Short: "Start the Profound Crow server",
 		Long:  `Start the Profound Crow server. This will run the API server, set up the Asynq worker, and get everything ready to accept requests.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if !validateToken(clientID, clientSecret, refreshToken) {
+			nestService := devices.NewNestService(oauthURL)
+			if !nestService.ValidateToken(clientID, clientSecret, refreshToken) {
 				return fmt.Errorf("invalid authorization token")
 			}
 
@@ -78,7 +78,7 @@ var (
 func init() {
 	startCmd.Flags().StringVar(&clientID, "client-id", "", "OAuth2 Client ID (required)")
 	startCmd.Flags().StringVar(&clientSecret, "client-secret", "", "OAuth2 Client Secret (required)")
-	startCmd.Flags().StringVar(&refreshToken, "authorization", "", "OAuth2 Authorization Token (required)")
+	startCmd.Flags().StringVar(&refreshToken, "refresh-token", "", "refresh token (required)")
 	startCmd.Flags().StringVar(&oauthURL, "oauth-url", "https://www.googleapis.com/oauth2/v4/token", "Google OAuth Endpoint URL")
 	startCmd.Flags().StringVar(&endpoint, "endpoint", "3.14.100.15", "Endpoint URL")
 	startCmd.Flags().StringVar(&projectID, "project-id", "5fdd9b9e-c155-4c40-953b-69b576286a62", "Google Cloud Project ID")
@@ -90,40 +90,4 @@ func init() {
 
 func GetStartCmd() *cobra.Command {
 	return startCmd
-}
-
-func validateToken(clientID string, clientSecret string, refreshToken string) bool {
-	url := "https://www.googleapis.com/oauth2/v4/token"
-	payload := map[string]string{
-		"client_id":     clientID,
-		"client_secret": clientSecret,
-		"refresh_token": refreshToken,
-		"grant_type":    "refresh_token",
-	}
-
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		log.Printf("Failed to marshal JSON: %v", err)
-		return false
-	}
-
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		log.Printf("Failed to validate token: %v", err)
-		return false
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return false
-	}
-
-	var result map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		log.Printf("Failed to decode token validation response: %v", err)
-		return false
-	}
-
-	_, exists := result["access_token"]
-	return exists
 }
