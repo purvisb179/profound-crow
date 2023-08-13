@@ -25,8 +25,8 @@ var (
 		Short: "Start the Profound Crow server",
 		Long:  `Start the Profound Crow server. This will run the API server, set up the Asynq worker, and get everything ready to accept requests.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			nestService := devices.NewNestService(oauthURL)
-			if !nestService.ValidateToken(clientID, clientSecret, refreshToken) {
+			nestService := devices.NewNestService(oauthURL, clientID, clientSecret, refreshToken)
+			if !nestService.ValidateToken() {
 				return fmt.Errorf("invalid authorization token")
 			}
 

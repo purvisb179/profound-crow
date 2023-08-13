@@ -3,52 +3,66 @@ package devices
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 )
 
 type NestService struct {
-	OAuthURL string
+	OAuthURL     string
+	ClientID     string
+	ClientSecret string
+	RefreshToken string
 }
 
-func NewNestService(oauthURL string) *NestService {
+func NewNestService(oauthURL, clientID, clientSecret, refreshToken string) *NestService {
 	return &NestService{
-		OAuthURL: oauthURL,
+		OAuthURL:     oauthURL,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		RefreshToken: refreshToken,
 	}
 }
 
-func (s *NestService) ValidateToken(clientID string, clientSecret string, refreshToken string) bool {
+// Obtain refreshed token
+func (s *NestService) getRefreshedToken() (string, error) {
 	url := s.OAuthURL
 	payload := map[string]string{
-		"client_id":     clientID,
-		"client_secret": clientSecret,
-		"refresh_token": refreshToken,
+		"client_id":     s.ClientID,
+		"client_secret": s.ClientSecret,
+		"refresh_token": s.RefreshToken,
 		"grant_type":    "refresh_token",
 	}
 
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
-		log.Printf("Failed to marshal JSON: %v", err)
-		return false
+		return "", err
 	}
 
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
-		log.Printf("Failed to validate token: %v", err)
-		return false
+		return "", err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return false
-	}
-
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		log.Printf("Failed to decode token validation response: %v", err)
-		return false
+		return "", err
 	}
 
-	_, exists := result["access_token"]
-	return exists
+	accessToken, exists := result["access_token"]
+	if !exists {
+		return "", fmt.Errorf("no access_token in response")
+	}
+
+	return accessToken.(string), nil
+}
+
+func (s *NestService) ValidateToken() bool {
+	_, err := s.getRefreshedToken()
+	if err != nil {
+		log.Printf("Token validation failed: %v", err)
+		return false
+	}
+	return true
 }
