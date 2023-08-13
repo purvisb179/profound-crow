@@ -13,8 +13,11 @@ COPY . .
 # Build the binary
 RUN CGO_ENABLED=0 GOOS=linux go build -o myapp main.go
 
-# Stage 2: copy the Go binary to an empty container
-FROM scratch
+# Stage 2: copy the Go binary to an Alpine container and update certs
+FROM alpine:latest
+
+# Update certificates in Alpine
+RUN apk --no-cache add ca-certificates
 
 WORKDIR /app
 
