@@ -6,7 +6,7 @@ type CalendarEventPayload struct {
 	FilePath      string
 	EventSummary  string
 	EventStart    time.Time
-	Configuration map[string]interface{} `json:"configuration"`
+	Configuration UploadInput //todo change this naming cause its confusing
 }
 
 type Event struct {

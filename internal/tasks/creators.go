@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-func CreateCalendarEvent(filePath string, eventSummary string, eventStart time.Time, config map[string]interface{}) (*asynq.Task, error) {
+func CreateCalendarEvent(filePath string, eventSummary string, eventStart time.Time, uploadInput pkg.UploadInput) (*asynq.Task, error) {
 	payload, err := json.Marshal(pkg.CalendarEventPayload{
 		FilePath:      filePath,
 		EventSummary:  eventSummary,
 		EventStart:    eventStart,
-		Configuration: config,
+		Configuration: uploadInput,
 	})
 	if err != nil {
 		return nil, err

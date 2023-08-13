@@ -22,6 +22,8 @@ func NewHandler(client *asynq.Client, inspector *asynq.Inspector) *Handler {
 	return &Handler{Client: client, Inspector: inspector}
 }
 
+//todo figure out what parts of the asynq stuff need to be in here. I feel like this file is got too broad of scope in regards to the stuff it does.
+
 func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -37,9 +39,9 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 
 	// Parse configuration JSON from the request
 	configJSON := r.FormValue("configuration")
-	var config map[string]interface{}
+	var uploadInput pkg.UploadInput
 	if configJSON != "" {
-		if err := json.Unmarshal([]byte(configJSON), &config); err != nil {
+		if err := json.Unmarshal([]byte(configJSON), &uploadInput); err != nil {
 			http.Error(w, "Invalid configuration JSON", http.StatusBadRequest)
 			log.Printf("Error parsing configuration JSON: %v", err)
 			return
@@ -78,7 +80,7 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 
 		summary := event.GetProperty(ics.ComponentPropertyDescription).Value
 
-		task, err := tasks.CreateCalendarEvent(handler.Filename, summary, processTime, config)
+		task, err := tasks.CreateCalendarEvent(handler.Filename, summary, processTime, uploadInput)
 		if err != nil {
 			http.Error(w, "Could not create task", http.StatusInternalServerError)
 			log.Printf("could not create task: %v", err)
