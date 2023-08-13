@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	ics "github.com/arran4/golang-ical"
-	"github.com/hibiken/asynq"
 	"github.com/purvisb179/profound-crow/internal/tasks"
 	"github.com/purvisb179/profound-crow/pkg"
 	"log"
@@ -14,12 +13,11 @@ import (
 )
 
 type Handler struct {
-	Client    *asynq.Client
-	Inspector *asynq.Inspector
+	AsynqService *tasks.AsynqService
 }
 
-func NewHandler(client *asynq.Client, inspector *asynq.Inspector) *Handler {
-	return &Handler{Client: client, Inspector: inspector}
+func NewHandler(asynqService *tasks.AsynqService) *Handler {
+	return &Handler{AsynqService: asynqService}
 }
 
 //todo figure out what parts of the asynq stuff need to be in here. I feel like this file is got too broad of scope in regards to the stuff it does.
@@ -95,7 +93,7 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 			continue
 		}
 
-		if _, err := h.Client.Enqueue(task, asynq.ProcessIn(durationUntilProcessing)); err != nil {
+		if err := h.AsynqService.EnqueueTask(task, durationUntilProcessing); err != nil {
 			http.Error(w, "Could not enqueue task", http.StatusInternalServerError)
 			log.Printf("could not enqueue task: %v", err)
 			return
@@ -117,7 +115,7 @@ func (h *Handler) CheckQueueHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tasks, err := h.Inspector.ListScheduledTasks("default", 0, -1)
+	tasks, err := h.AsynqService.ListScheduledTasks()
 	if err != nil {
 		http.Error(w, "Error retrieving tasks", http.StatusInternalServerError)
 		log.Printf("Error retrieving tasks: %v", err)

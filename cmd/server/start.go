@@ -58,7 +58,8 @@ var (
 			go func() {
 				client := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
 				inspector := asynq.NewInspector(asynq.RedisClientOpt{Addr: redisAddr})
-				apiHandler := api.NewHandler(client, inspector)
+				asynqService := tasks.NewAsynqService(client, inspector)
+				apiHandler := api.NewHandler(asynqService)
 				router := chi.NewRouter()
 				api.BindRoutes(router, apiHandler)
 				if err := http.ListenAndServe(":"+serverPort, router); err != nil {
