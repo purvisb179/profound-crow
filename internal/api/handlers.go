@@ -97,6 +97,12 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 		processTime, _ := event.GetStartAt()
 		endTime, _ := event.GetEndAt()
 		processTime = processTime.Local()
+
+		if processTime.Before(time.Now()) {
+			log.Printf("Skipping event in the past: %s", event.GetProperty(ics.ComponentPropertyDescription).Value)
+			continue
+		}
+
 		summary := event.GetProperty(ics.ComponentPropertyDescription).Value
 
 		payload := pkg.CalendarEventPayload{
