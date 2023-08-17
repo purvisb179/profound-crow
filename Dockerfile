@@ -21,7 +21,11 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /app
 
+# Copy the binary from the builder stage
 COPY --from=builder /app/myapp /app/myapp
+
+# Copy the web directory
+COPY --from=builder /app/web /app/web
 
 # The command to start the app
 CMD ["/app/myapp"]
