@@ -156,7 +156,7 @@ func formatTime(t time.Time) string {
 }
 
 func (h *Handler) ClearQueueHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodDelete {
+	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}

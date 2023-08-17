@@ -62,5 +62,39 @@
     {{end}}
     </tbody>
 </table>
+
+<form id="clearQueueForm" action="/clear-queue?queue=YOUR_QUEUE_NAME" method="post" onsubmit="return clearQueue();">
+    <button type="submit" style="margin-top: 20px; padding: 10px 15px; background-color: #e74c3c; color: #fff; border: none; border-radius: 5px; cursor: pointer;">Clear Queue</button>
+</form>
+
+
 </body>
 </html>
+
+<script>
+    function clearQueue() {
+        if (confirm('Are you sure you want to clear the queue?')) {
+            fetch('/clear-queue?queue=default', {
+                method: 'POST'
+            })
+                .then(response => response.text())
+                .then(data => {
+                    alert(data);
+                    // Wait for 0.5 seconds (500 milliseconds) before refreshing the page
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                })
+                .catch(error => {
+                    alert('Error clearing the queue: ' + error);
+                });
+
+            // Prevent the form from submitting the traditional way
+            return false;
+        } else {
+            // Prevent the form from submitting if the user cancels the confirmation
+            return false;
+        }
+    }
+</script>
+
