@@ -98,28 +98,22 @@
 
 <script>
     function clearQueue() {
-        if (confirm('Are you sure you want to clear the queue?')) {
-            fetch('/clear-queue?queue=default', {
-                method: 'POST'
+        fetch('/clear-queue?queue=default', {
+            method: 'POST'
+        })
+            .then(response => response.text())
+            .then(data => {
+                // Wait for 0.5 seconds (500 milliseconds) before refreshing the page
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
             })
-                .then(response => response.text())
-                .then(data => {
-                    alert(data);
-                    // Wait for 0.5 seconds (500 milliseconds) before refreshing the page
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 500);
-                })
-                .catch(error => {
-                    alert('Error clearing the queue: ' + error);
-                });
+            .catch(error => {
+                console.error('Error clearing the queue: ' + error);
+            });
 
-            // Prevent the form from submitting the traditional way
-            return false;
-        } else {
-            // Prevent the form from submitting if the user cancels the confirmation
-            return false;
-        }
+        // Prevent the form from submitting the traditional way
+        return false;
     }
 
     function uploadCalendar() {
@@ -132,20 +126,18 @@
         })
             .then(response => response.text())
             .then(data => {
-                alert(data);
                 // Wait for 0.5 seconds (500 milliseconds) before refreshing the page
                 setTimeout(() => {
                     window.location.reload();
                 }, 500);
             })
             .catch(error => {
-                alert('Error uploading calendar: ' + error);
+                console.error('Error uploading calendar: ' + error);
             });
 
         // Prevent the form from submitting the traditional way
         return false;
     }
-
 </script>
 
 <style>

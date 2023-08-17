@@ -136,9 +136,7 @@ func (h *Handler) CheckQueueHandler(w http.ResponseWriter, r *http.Request) {
 
 	tasks, err := h.AsynqService.ListScheduledTasks()
 	if err != nil {
-		http.Error(w, "Error retrieving tasks", http.StatusInternalServerError)
 		log.Printf("Error retrieving tasks: %v", err)
-		return
 	}
 
 	taskDetails := make([]pkg.CalendarTaskCheckResponse, len(tasks))
