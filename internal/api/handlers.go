@@ -5,9 +5,11 @@ import (
 	ics "github.com/arran4/golang-ical"
 	"github.com/purvisb179/profound-crow/internal/tasks"
 	"github.com/purvisb179/profound-crow/pkg"
+	"html/template"
 	"log"
 	"mime/multipart"
 	"net/http"
+	"time"
 )
 
 type Handler struct {
@@ -127,16 +129,30 @@ func (h *Handler) CheckQueueHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	response, err := json.Marshal(taskDetails)
+	// Load the template from the given path
+	funcMap := template.FuncMap{
+		"formatTime": formatTime,
+	}
+
+	tmpl, err := template.New("check.html").Funcs(funcMap).ParseFiles("./web/check.html")
+
 	if err != nil {
-		http.Error(w, "Error marshalling response", http.StatusInternalServerError)
-		log.Printf("Error marshalling response: %v", err)
+		http.Error(w, "Error loading template", http.StatusInternalServerError)
+		log.Printf("Error loading template: %v", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response)
-	return
+	// Render the template with the data
+	err = tmpl.Execute(w, taskDetails)
+	if err != nil {
+		http.Error(w, "Error rendering template", http.StatusInternalServerError)
+		log.Printf("Error rendering template: %v", err)
+		return
+	}
+}
+
+func formatTime(t time.Time) string {
+	return t.Format("01/02/2006 03:04:05 PM")
 }
 
 func (h *Handler) ClearQueueHandler(w http.ResponseWriter, r *http.Request) {

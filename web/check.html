@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        td {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<h1>Task Details</h1>
+<table>
+    <thead>
+    <tr>
+        <th>Device ID</th>
+        <th>Temperature</th>
+        <th>Start Time</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{range .}}
+    <tr>
+        <td>{{.Payload.DeviceID}}</td>
+        <td>{{.Payload.Temp}}</td>
+        <td>{{.StartTime | formatTime}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+</table>
+</body>
+</html>
