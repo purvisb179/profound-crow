@@ -9,6 +9,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -33,15 +34,37 @@ func (h *Handler) CreateCalendarHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Parse configuration JSON from the request
-	configJSON := r.FormValue("configuration")
-	var uploadInput pkg.UploadInput
-	if configJSON != "" {
-		if err := json.Unmarshal([]byte(configJSON), &uploadInput); err != nil {
-			http.Error(w, "Invalid configuration JSON", http.StatusBadRequest)
-			log.Printf("Error parsing configuration JSON: %v", err)
-			return
-		}
+	// Extract and convert form fields
+	deviceID := r.FormValue("configuration[device_id]")
+	name := r.FormValue("configuration[name]")
+	vacantTempStr := r.FormValue("configuration[vacant_temp]")
+	occupiedTempStr := r.FormValue("configuration[occupied_temp]")
+	rampUpTimeSecondsStr := r.FormValue("configuration[ramp_up_time_seconds]")
+
+	vacantTemp, err := strconv.Atoi(vacantTempStr)
+	if err != nil {
+		http.Error(w, "Invalid vacant temperature", http.StatusBadRequest)
+		return
+	}
+
+	occupiedTemp, err := strconv.Atoi(occupiedTempStr)
+	if err != nil {
+		http.Error(w, "Invalid occupied temperature", http.StatusBadRequest)
+		return
+	}
+
+	rampUpTimeSeconds, err := strconv.Atoi(rampUpTimeSecondsStr)
+	if err != nil {
+		http.Error(w, "Invalid ramp up time", http.StatusBadRequest)
+		return
+	}
+
+	uploadInput := pkg.UploadInput{
+		DeviceID:          deviceID,
+		Name:              name,
+		VacantTemp:        vacantTemp,
+		OccupiedTemp:      occupiedTemp,
+		RampUpTimeSeconds: rampUpTimeSeconds,
 	}
 
 	file, handler, err := r.FormFile("myFile")

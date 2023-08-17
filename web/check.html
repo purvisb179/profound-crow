@@ -67,6 +67,31 @@
     <button type="submit" style="margin-top: 20px; padding: 10px 15px; background-color: #e74c3c; color: #fff; border: none; border-radius: 5px; cursor: pointer;">Clear Queue</button>
 </form>
 
+<h2>Upload New Calendar</h2>
+<form id="uploadCalendarForm" action="/new-calendar" method="post" enctype="multipart/form-data" onsubmit="return uploadCalendar();">
+    <!-- File Upload -->
+    <label for="myFile">Select a calendar file:</label>
+    <input type="file" id="myFile" name="myFile" required><br><br>
+
+    <!-- Configuration Inputs -->
+    <label for="device_id">Device ID:</label>
+    <input type="text" id="device_id" name="configuration[device_id]" required><br><br>
+
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="configuration[name]" required><br><br>
+
+    <label for="vacant_temp">Vacant Temperature:</label>
+    <input type="number" id="vacant_temp" name="configuration[vacant_temp]" required><br><br>
+
+    <label for="occupied_temp">Occupied Temperature:</label>
+    <input type="number" id="occupied_temp" name="configuration[occupied_temp]" required><br><br>
+
+    <label for="ramp_up_time_seconds">Ramp Up Time (seconds):</label>
+    <input type="number" id="ramp_up_time_seconds" name="configuration[ramp_up_time_seconds]" required><br><br>
+
+    <input type="submit" value="Upload Calendar" style="padding: 10px 15px; background-color: #2ecc71; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
+</form>
+
 
 </body>
 </html>
@@ -96,5 +121,106 @@
             return false;
         }
     }
+
+    function uploadCalendar() {
+        // Create a FormData object to hold the form data
+        const formData = new FormData(document.getElementById('uploadCalendarForm'));
+
+        fetch('/new-calendar', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                // Wait for 0.5 seconds (500 milliseconds) before refreshing the page
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            })
+            .catch(error => {
+                alert('Error uploading calendar: ' + error);
+            });
+
+        // Prevent the form from submitting the traditional way
+        return false;
+    }
+
 </script>
 
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        background-color: #f4f4f4;
+    }
+
+    h1, h2 {
+        color: #333;
+    }
+
+    table {
+        width: 100%;
+        max-width: 800px;
+        margin: 20px auto;
+        border-collapse: collapse;
+        background-color: #fff;
+        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f2f2f2;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+
+    tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    td {
+        text-align: center;
+    }
+
+    form {
+        max-width: 800px;
+        margin: 20px auto;
+        background-color: #fff;
+        padding: 20px;
+        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    input[type="text"], input[type="number"], input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    input[type="submit"], button {
+        padding: 10px 15px;
+        background-color: #2ecc71;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    input[type="submit"]:hover, button:hover {
+        background-color: #27ae60;
+    }
+
+</style>
